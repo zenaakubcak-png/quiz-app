@@ -4,21 +4,59 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Вікторина</title>
-    <!-- Підключення стилів -->
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <!-- Шапка з назвою -->
-    
-    <!-- Блок поточного питання й варіантів відповіді -->
-    
-    <!-- Блок прогресу проходження -->
-    
-    <!-- Блок результатів і історії спроб -->
-    
-    <!-- Підвал -->
+    <!-- Шапка з назвою та навігацією -->
+    <header>
+        <h1>Вікторина</h1>
+        <nav>
+            <a href="#current-question">Питання</a>
+            <a href="#history">Результати</a>
+        </nav>
+    </header>
 
-    <!-- Підключення скриптів у кінці body -->
+    <!-- Основний вміст -->
+    <main>
+        <!-- Секція поточного питання (без article, бо питання одне) -->
+        <section id="current-question">
+            <h2>Поточне питання</h2>
+            <p>Яке ключове слово використовується для оголошення змінної в JavaScript?</p>
+            
+            <!-- Форма для забезпечення базової доступності (зв'язок label та input через id/for) -->
+            <form>
+                <input type="radio" id="ans1" name="q1">
+                <label for="ans1">var</label><br>
+                
+                <input type="radio" id="ans2" name="q1">
+                <label for="ans2">let</label><br>
+                
+                <input type="radio" id="ans3" name="q1">
+                <label for="ans3">def</label>
+            </form>
+        </section>
+
+        <!-- Секція історії спроб (повторювані елементи розмічаємо як article) -->
+        <section id="history">
+            <h2>Історія спроб</h2>
+            
+            <article>
+                <h3>15.09.2026 - Результат: 10/10</h3>
+                <p>Відмінно! Всі відповіді правильні.</p>
+            </article>
+            
+            <article>
+                <h3>10.09.2026 - Результат: 6/10</h3>
+                <p>Добре, але є куди рости.</p>
+            </article>
+        </section>
+    </main>
+
+    <!-- Підвал -->
+    <footer>
+        <p>&copy; 2026 Навчальний проєкт. Розробив Якубчак Є. А.</p>
+    </footer>
+
     <script src="js/app.js"></script>
 </body>
 </html>
