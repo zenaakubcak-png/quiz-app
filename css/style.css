@@ -1,0 +1,123 @@
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: system-ui, sans-serif;
+    line-height: 1.5;
+    color: #222;
+    background-color: #f4f4f9; /* Світлий нейтральний фон сторінки */
+}
+
+/* =========================================
+   HEADER та навігація (Енергійна палітра) 
+   ========================================= */
+header {
+    background-color: #6f42c1; /* Фіолетовий колір за варіантом 8 */
+    padding: 24px;
+    color: white;
+    text-align: center;
+}
+
+header h1 {
+    margin: 0 0 10px 0;
+    font-size: 2.5rem;
+}
+
+header nav a {
+    color: #ffc107; /* Жовтий акцент за варіантом 8 */
+    text-decoration: none;
+    margin-right: 20px;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+header nav a:hover {
+    text-decoration: underline;
+    color: #fff;
+}
+
+/* =========================================
+   ОСНОВНИЙ ВМІСТ (main)
+   ========================================= */
+main {
+    max-width: 800px;
+    margin: 0 auto; /* Центрування контенту */
+    padding: 20px;
+}
+
+section {
+    margin-bottom: 40px;
+}
+
+/* =========================================
+   СЕКЦІЯ ПОТОЧНОГО ПИТАННЯ (Варіант 8)
+   ========================================= */
+#current-question {
+    background-color: white;
+    padding: 32px; /* Вимога: великий padding */
+    border-radius: 12px; /* Вимога: border-radius 12px */
+    text-align: center; /* Вимога: центрований текст */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    border-top: 5px solid #ffc107; /* Жовтий акцент */
+}
+
+/* Варіанти відповідей (стилізація label як кнопок) */
+#current-question form {
+    text-align: left;
+    max-width: 400px;
+    margin: 20px auto 0 auto;
+}
+
+#current-question label {
+    display: block;
+    background-color: #e9ecef;
+    padding: 12px; /* Вимога: padding 12px для кнопок */
+    margin-bottom: 8px; /* Вимога: margin-bottom 8px */
+    border-radius: 6px; /* Вимога: border-radius 6px */
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#current-question label:hover {
+    background-color: #ffc107; /* Вимога: hover-ефект зміни фону */
+    color: #000;
+}
+
+#current-question input[type="radio"] {
+    margin-right: 10px;
+}
+
+/* =========================================
+   СЕКЦІЯ ІСТОРІЇ СПРОБ (Варіант 8)
+   ========================================= */
+#history article {
+    background-color: white;
+    padding: 10px; /* Вимога: компактніші, padding 10px */
+    margin-bottom: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    border-left: 4px solid #6f42c1; /* Фіолетовий акцент */
+}
+
+#history h3 {
+    margin: 0 0 5px 0;
+    color: #6f42c1;
+}
+
+#history p {
+    margin: 0;
+}
+
+/* =========================================
+   FOOTER
+   ========================================= */
+footer {
+    text-align: center;
+    padding: 20px;
+    font-size: 0.9rem;
+    color: #6c757d;
+    background-color: #e9ecef;
+    margin-top: 40px;
+}
