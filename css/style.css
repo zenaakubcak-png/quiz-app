@@ -64,21 +64,6 @@ section {
 }
 
 /* Варіанти відповідей (стилізація label як кнопок) */
-#current-question form {
-    text-align: left;
-    max-width: 400px;
-    margin: 20px auto 0 auto;
-}
-
-#current-question label {
-    display: block;
-    background-color: #e9ecef;
-    padding: 12px; /* Вимога: padding 12px для кнопок */
-    margin-bottom: 8px; /* Вимога: margin-bottom 8px */
-    border-radius: 6px; /* Вимога: border-radius 6px */
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
 
 #current-question label:hover {
     background-color: #ffc107; /* Вимога: hover-ефект зміни фону */
@@ -120,4 +105,102 @@ footer {
     color: #6c757d;
     background-color: #e9ecef;
     margin-top: 40px;
+}
+
+/* =========================================
+   АДАПТИВНА ВЕРСТКА (Mobile-First)
+   ========================================= */
+
+/* --- Мобільний (базові стилі до 599px) --- */
+header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+header nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+}
+
+header nav a {
+    margin-right: 0; /* Скидаємо старий марджин, тепер працює gap */
+}
+
+/* Зображення не виходять за межі */
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Варіанти відповідей: стовпчик кнопок на всю ширину */
+.options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 20px;
+}
+
+.option-btn {
+    display: flex;
+    align-items: center;
+    background-color: #e9ecef;
+    padding: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.option-btn input {
+    margin-right: 10px;
+}
+
+.option-btn:hover {
+    background-color: #ffc107;
+    color: #000;
+}
+
+/* Картки історії спроб: 1 колонка */
+.history-cards {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+}
+
+/* Скидаємо старий margin-bottom, щоб працював gap */
+#history article {
+    margin-bottom: 0; 
+}
+
+
+/* --- ПЛАНШЕТ (від 600px) --- */
+@media (min-width: 600px) {
+    header {
+        flex-direction: row;
+        justify-content: space-between;
+    }
+    
+    /* Варіанти відповідей: сітка 2 колонки */
+    .options {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+}
+
+/* --- ДЕСКТОП (від 1024px) --- */
+@media (min-width: 1024px) {
+    /* Картка питання центрована з max-width */
+    #current-question {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    /* Картки історії спроб: 3 колонки */
+    .history-cards {
+        grid-template-columns: repeat(3, 1fr);
+    }
 }

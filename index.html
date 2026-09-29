@@ -24,31 +24,32 @@
             <p>Яке ключове слово використовується для оголошення змінної в JavaScript?</p>
             
             <!-- Форма для забезпечення базової доступності (зв'язок label та input через id/for) -->
-            <form>
-                <input type="radio" id="ans1" name="q1">
-                <label for="ans1">var</label><br>
-                
-                <input type="radio" id="ans2" name="q1">
-                <label for="ans2">let</label><br>
-                
-                <input type="radio" id="ans3" name="q1">
-                <label for="ans3">def</label>
+            <form class="options">
+                <label class="option-btn">
+                    <input type="radio" name="q1" id="ans1"> var
+                </label>
+                <label class="option-btn">
+                    <input type="radio" name="q1" id="ans2"> let
+                </label>
+                <label class="option-btn">
+                    <input type="radio" name="q1" id="ans3"> def
+                </label>
             </form>
         </section>
 
         <!-- Секція історії спроб (повторювані елементи розмічаємо як article) -->
         <section id="history">
             <h2>Історія спроб</h2>
-            
-            <article>
-                <h3>15.09.2026 - Результат: 10/10</h3>
-                <p>Відмінно! Всі відповіді правильні.</p>
-            </article>
-            
-            <article>
-                <h3>10.09.2026 - Результат: 6/10</h3>
-                <p>Добре, але є куди рости.</p>
-            </article>
+            <div class="history-cards">
+                <article>
+                    <h3>15.09.2026 - Результат: 10/10</h3>
+                    <p>Відмінно! Всі відповіді правильні.</p>
+                </article>
+                <article>
+                    <h3>10.09.2026 - Результат: 6/10</h3>
+                    <p>Добре, але є куди рости.</p>
+                </article>
+            </div>
         </section>
     </main>
 
