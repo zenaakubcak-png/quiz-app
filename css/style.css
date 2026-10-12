@@ -1,13 +1,20 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Nunito:wght@400;600&display=swap');
 *, *::before, *::after {
     box-sizing: border-box;
 }
 
 body {
     margin: 0;
-    font-family: system-ui, sans-serif;
+    /* Оновлено: два шрифти (Montserrat для заголовків, Nunito для тексту) */
+    font-family: 'Nunito', system-ui, sans-serif;
     line-height: 1.5;
-    color: #222;
-    background-color: #f4f4f9; /* Світлий нейтральний фон сторінки */
+    color: #333; /* Трохи м'якший темний колір для тексту, контраст > 4.5:1 */
+    background-color: #f4f4f9; 
+}
+
+/* Налаштування шрифту заголовків */
+h1, h2, h3 {
+    font-family: 'Montserrat', sans-serif;
 }
 
 /* =========================================
@@ -61,6 +68,41 @@ section {
     text-align: center; /* Вимога: центрований текст */
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     border-top: 5px solid #ffc107; /* Жовтий акцент */
+}
+
+/* =========================================
+   РЕАЛІЗАЦІЯ НЕЧІТКОЇ ВИМОГИ (Гейміфікація)
+   ========================================= */
+/* Обґрунтування: Щоб проходження квізу було захопливим, додано виразний номер 
+   поточного питання та прогрес-індикатор. Це створює відчуття досягнення 
+   і мотивує користувача завершити тест. */
+
+.question-header {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.question-number {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #6f42c1; /* Фіолетовий акцент */
+    margin-bottom: 10px;
+}
+
+.progress-bar-container {
+    width: 100%;
+    height: 10px;
+    background-color: #e9ecef;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: #ffc107; /* Жовтий акцент */
+    border-radius: 5px;
+    transition: width 0.3s ease;
 }
 
 /* Варіанти відповідей (стилізація label як кнопок) */
@@ -163,6 +205,46 @@ img {
     color: #000;
 }
 
+/* =========================================
+   РЕАЛІЗАЦІЯ ЧІТКОЇ ВИМОГИ (Варіант 8)
+   ========================================= */
+/* Кольори для правильної та неправильної відповіді з контрастом >= 4.5:1 */
+
+.option-btn.correct {
+    background-color: #2e7d32; /* Темно-зелений (WCAG AA пройдено для білого тексту) */
+    color: #ffffff;
+    border: 2px solid #1b5e20;
+}
+
+.option-btn.incorrect {
+    background-color: #c62828; /* Темно-червоний (WCAG AA пройдено для білого тексту) */
+    color: #ffffff;
+    border: 2px solid #b71c1c;
+}
+
+/* Приховуємо текст результату за замовчуванням для невідмічених */
+.option-btn .result-text {
+    display: none;
+    margin-left: auto; /* Відкидає іконку/текст вправо */
+    font-weight: bold;
+}
+
+/* Показуємо текст результату для відмічених */
+.option-btn.correct .result-text,
+.option-btn.incorrect .result-text {
+    display: inline;
+}
+
+/* Відміняємо hover ефект для вже обраних відповідей */
+.option-btn.correct:hover {
+    background-color: #2e7d32;
+    color: #ffffff;
+}
+.option-btn.incorrect:hover {
+    background-color: #c62828;
+    color: #ffffff;
+}
+
 /* Картки історії спроб: 1 колонка */
 .history-cards {
     display: grid;
@@ -172,7 +254,11 @@ img {
 
 /* Скидаємо старий margin-bottom, щоб працював gap */
 #history article {
-    margin-bottom: 0; 
+    background-color: white;
+    padding: 16px; /* Збільшено padding для більшого "повітря" */
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); /* Трохи м'якша тінь */
+    border-left: 5px solid #6f42c1;
 }
 
 

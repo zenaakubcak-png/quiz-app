@@ -18,19 +18,31 @@
 
     <!-- Основний вміст -->
     <main>
-        <!-- Секція поточного питання (без article, бо питання одне) -->
+        <!-- Секція поточного питання -->
         <section id="current-question">
+            <!-- ДОДАНО: Нечітка вимога (виразний номер питання та прогрес) -->
+            <div class="question-header">
+                <span class="question-number">Питання 3 з 10</span>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" style="width: 30%;"></div>
+                </div>
+            </div>
+
             <h2>Поточне питання</h2>
             <p>Яке ключове слово використовується для оголошення змінної в JavaScript?</p>
             
-            <!-- Форма для забезпечення базової доступності (зв'язок label та input через id/for) -->
             <form class="options">
-                <label class="option-btn">
-                    <input type="radio" name="q1" id="ans1"> var
+                <!-- ДОДАНО: класи correct / incorrect та span з текстом результату для доступності (чітка вимога) -->
+                <label class="option-btn incorrect">
+                    <input type="radio" name="q1" id="ans1" disabled> var
+                    <span class="result-text">(Помилка ✖)</span>
                 </label>
-                <label class="option-btn">
-                    <input type="radio" name="q1" id="ans2"> let
+                
+                <label class="option-btn correct">
+                    <input type="radio" name="q1" id="ans2" checked> let
+                    <span class="result-text">(Правильно ✔)</span>
                 </label>
+                
                 <label class="option-btn">
                     <input type="radio" name="q1" id="ans3"> def
                 </label>
