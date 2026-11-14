@@ -23,30 +23,38 @@
         <!-- Секція поточного питання -->
         <section id="current-question">
             <div class="question-header">
-                <span class="question-number">Питання 3 з 10</span>
+                <span class="question-number">Питання 1 з 4</span>
                 <div class="progress-bar-container">
-                    <div class="progress-bar" style="width: 30%;"></div>
+                    <div class="progress-bar" style="width: 25%;"></div>
                 </div>
             </div>
 
             <h2>Поточне питання</h2>
-            <p>Яке ключове слово використовується для оголошення змінної в JavaScript?</p>
+            <p id="question-text">Яке ключове слово використовується для оголошення змінної в JavaScript?</p>
 
-            <form class="options">
-                <label class="option-btn incorrect">
-                    <input type="radio" name="q1" id="ans1" disabled> var
-                    <span class="result-text">(Помилка ✖)</span>
+            <form id="quiz-form" class="options">
+                <label class="option-btn" for="ans-0">
+                    <input type="radio" name="quizOption" id="ans-0" value="0" required>
+                    <span class="option-label">var</span>
                 </label>
 
-                <label class="option-btn correct">
-                    <input type="radio" name="q1" id="ans2" checked> let
-                    <span class="result-text">(Правильно ✔)</span>
+                <label class="option-btn" for="ans-1">
+                    <input type="radio" name="quizOption" id="ans-1" value="1" required>
+                    <span class="option-label">let</span>
                 </label>
 
-                <label class="option-btn">
-                    <input type="radio" name="q1" id="ans3"> def
+                <label class="option-btn" for="ans-2">
+                    <input type="radio" name="quizOption" id="ans-2" value="2" required>
+                    <span class="option-label">def</span>
                 </label>
+
+                <div class="quiz-actions">
+                    <button type="submit" id="submit-answer-btn">Перевірити відповідь</button>
+                    <button type="button" id="next-question-btn">Наступне питання</button>
+                </div>
             </form>
+
+            <p id="quiz-feedback" aria-live="polite">Оберіть варіант відповіді та натисніть «Перевірити відповідь».</p>
         </section>
 
         <!-- Секція списку питань (динамічний рендер за варіантом 8) -->
