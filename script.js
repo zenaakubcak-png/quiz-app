@@ -1,66 +1,14 @@
-// Константа ендпоінта публічного API для варіанту 8 (Open Trivia Database)
+// Обрано Vue 3 через CDN, оскільки він підключається одним тегом без збірки/Babel, має зручну реактивність та наочне дерево стану у Vue DevTools.
+
 const API_URL = 'https://opentdb.com/api.php?amount=10&type=multiple';
 
-// Перевірка підключення
-// Виводимо повідомлення, щоб переконатися, що файл успішно підключено до HTML
-console.log('script.js підключено');
+/*
+  Функцію ручного рендеру списку renderQuestions(questions) з практикуму 7 замінено
+  на декларативний рендер у Vue 3 через директиву v-for та компонент QuizQuestion
+  (без ручного виклику createElement, querySelector чи innerHTML для списку).
+*/
 
-// Видаляємо статичний приклад елемента зі списку на старті роботи скрипта
-const staticExample = document.querySelector('#questions-list .static-example');
-if (staticExample) {
-  staticExample.remove();
-}
-
-// Початковий масив об'єктів з питаннями вікторини (оновлюється даними з API)
-let quizData = [
-  {
-    question: "Яке ключове слово використовується для оголошення змінної в JavaScript?",
-    options: ["var", "let", "def"],
-    correctIndex: 1,
-    answer: "let",
-    answered: false
-  },
-  {
-    question: "Який тип даних використовується для тексту?",
-    options: ["number", "string", "boolean"],
-    correctIndex: 1,
-    answer: "string",
-    answered: false
-  },
-  {
-    question: "Який результат typeof 5?",
-    options: ["number", "string", "object"],
-    correctIndex: 0,
-    answer: "number",
-    answered: false
-  },
-  {
-    question: "Чи мають стрілкові функції власний this?",
-    options: ["так", "лише у strict mode", "ні"],
-    correctIndex: 2,
-    answer: "ні",
-    answered: false
-  }
-];
-
-// Обираємо елементи DOM для списку питань, підсумку, інтерактивної форми та станів API
-const listContainer = document.querySelector('#questions-list');
-const questionsCountEl = document.querySelector('#questions-count');
-const quizForm = document.querySelector('#quiz-form');
-const nextQuestionBtn = document.querySelector('#next-question-btn');
-const questionTextEl = document.querySelector('#question-text');
-const questionNumberEl = document.querySelector('.question-number');
-const progressBarEl = document.querySelector('.progress-bar');
-const feedbackEl = document.querySelector('#quiz-feedback');
-const optionLabels = document.querySelectorAll('#quiz-form .option-label');
-const refreshApiBtn = document.querySelector('#refresh-api-btn');
-const loadingStatusEl = document.querySelector('#loading-status');
-const apiErrorEl = document.querySelector('#api-error');
-
-let currentQuestionIndex = 0;
-let savedCorrectCount = 0;
-
-// Розкодовує HTML-сутності (&quot;, &#039;, &amp; тощо) з рядків відповіді Open Trivia Database
+// Допоміжна функція розкодування HTML-сутностей (&quot;, &#039;, &amp; тощо) з Open Trivia Database
 function decodeHtmlEntities(text) {
   if (typeof text !== 'string') return '';
   const parser = new DOMParser();
@@ -68,7 +16,7 @@ function decodeHtmlEntities(text) {
   return parsedDoc.documentElement.textContent ?? '';
 }
 
-// Перемішує копію масиву варіантів відповіді (алгоритм Фішера — Єйтса)
+// Допоміжна функція перемішування варіантів відповіді (алгоритм Фішера — Єйтса)
 function shuffleArray(items) {
   const copy = [...items];
   for (let i = copy.length - 1; i > 0; i--) {
@@ -78,204 +26,164 @@ function shuffleArray(items) {
   return copy;
 }
 
-// Керує видимістю індикатора завантаження та станом кнопки «Оновити»
-function setLoadingState(isLoading) {
-  if (loadingStatusEl) {
-    loadingStatusEl.hidden = !isLoading;
-  }
-  if (refreshApiBtn) {
-    refreshApiBtn.disabled = isLoading;
-  }
-}
-
-// Відображає або приховує зрозуміле повідомлення про помилку для користувача
-function showErrorMessage(message) {
-  if (!apiErrorEl) return;
-  if (!message) {
-    apiErrorEl.textContent = '';
-    apiErrorEl.hidden = true;
-    return;
-  }
-  apiErrorEl.textContent = message;
-  apiErrorEl.hidden = false;
-}
-
-// Функція рендеру списку питань у DOM (повторно використана з практикуму 7)
-// Очищає контейнер, створює елементи <li> для кожного питання, додає data-answer та умовний клас
-function renderQuestions(questions) {
-  if (!listContainer) return;
-
-  listContainer.innerHTML = '';
-
-  questions.forEach((item) => {
-    const listItem = document.createElement('li');
-    listItem.textContent = item.question;
-    listItem.dataset.answer = item.answer;
-
-    if (item.answered) {
-      listItem.classList.add('answered');
+// Компонент QuizQuestion (Варіант 8): отримує дані через props і сповіщає батька подією 'answer'
+const QuizQuestion = {
+  props: {
+    question: {
+      type: String,
+      required: true
+    },
+    options: {
+      type: Array,
+      required: true
+    },
+    correctIndex: {
+      type: Number,
+      required: true
     }
+  },
+  emits: ['answer'],
+  template: `
+    <div class="quiz-question-card">
+      <p id="question-text">{{ question }}</p>
+      <div class="options">
+        <button
+          v-for="(optionText, index) in options"
+          :key="index"
+          type="button"
+          class="option-btn"
+          @click="$emit('answer', index)"
+        >
+          <span class="option-label">{{ optionText }}</span>
+        </button>
+      </div>
+    </div>
+  `
+};
 
-    listContainer.append(listItem);
-  });
+Vue.createApp({
+  components: {
+    QuizQuestion
+  },
+  data() {
+    return {
+      questions: [
+        {
+          id: 1,
+          question: 'Яке ключове слово використовується для оголошення змінної в JavaScript?',
+          options: ['var', 'let', 'def'],
+          correctIndex: 1,
+          answer: 'let',
+          answered: false
+        },
+        {
+          id: 2,
+          question: 'Який тип даних використовується для тексту?',
+          options: ['number', 'string', 'boolean'],
+          correctIndex: 1,
+          answer: 'string',
+          answered: false
+        },
+        {
+          id: 3,
+          question: 'Який результат typeof 5?',
+          options: ['number', 'string', 'object'],
+          correctIndex: 0,
+          answer: 'number',
+          answered: false
+        },
+        {
+          id: 4,
+          question: 'Чи мають стрілкові функції власний this?',
+          options: ['так', 'лише у strict mode', 'ні'],
+          correctIndex: 2,
+          answer: 'ні',
+          answered: false
+        }
+      ],
+      currentIndex: 0,
+      score: 0,
+      feedback: 'Оберіть варіант відповіді, клікнувши по ньому.',
+      isLoading: false,
+      errorMessage: ''
+    };
+  },
+  computed: {
+    currentQuestion() {
+      return this.questions[this.currentIndex] || null;
+    },
+    progressPercent() {
+      if (!this.questions.length) return 0;
+      return Math.round(((this.currentIndex + 1) / this.questions.length) * 100);
+    }
+  },
+  methods: {
+    handleAnswer(selectedIndex) {
+      const current = this.currentQuestion;
+      if (!current) return;
 
-  if (questionsCountEl) {
-    questionsCountEl.textContent = `Всього питань: ${questions.length} | Збережено правильних: ${savedCorrectCount}`;
-  }
-}
+      const isCorrect = selectedIndex === current.correctIndex;
+      if (!current.answered && isCorrect) {
+        this.score += 1;
+      }
+      current.answered = true;
 
-// Функція оновлення картки поточного питання та індикатора прогресу
-function renderCurrentQuestion(index) {
-  const currentItem = quizData[index];
-  if (!currentItem) return;
+      this.feedback = isCorrect
+        ? `Правильно! Відповідь «${current.options[selectedIndex]}» зараховано (рахунок: ${this.score}/${this.questions.length}).`
+        : `Неправильно. Ви обрали «${current.options[selectedIndex]}», правильна відповідь: «${current.answer}» (рахунок: ${this.score}/${this.questions.length}).`;
+    },
+    nextQuestion() {
+      if (!this.questions.length) return;
+      this.currentIndex = (this.currentIndex + 1) % this.questions.length;
+      this.feedback = `Перейшли до питання ${this.currentIndex + 1}. Оберіть варіант відповіді.`;
+    },
+    async loadQuestionsFromApi() {
+      this.errorMessage = '';
+      this.isLoading = true;
 
-  if (questionTextEl) {
-    questionTextEl.textContent = currentItem.question;
-  }
+      try {
+        const response = await fetch(API_URL);
+        if (!response.ok) {
+          throw new Error(`HTTP-запит завершився зі статусом ${response.status}`);
+        }
 
-  if (questionNumberEl) {
-    questionNumberEl.textContent = `Питання ${index + 1} з ${quizData.length}`;
-  }
+        const data = await response.json();
+        if (!data || !Array.isArray(data.results) || data.response_code !== 0 || data.results.length === 0) {
+          throw new Error('API повернуло порожній або некоректний список питань');
+        }
 
-  if (progressBarEl) {
-    const percent = Math.round(((index + 1) / quizData.length) * 100);
-    progressBarEl.style.width = `${percent}%`;
-  }
+        this.questions = data.results.map((rawItem, idx) => {
+          const decodedQuestion = decodeHtmlEntities(rawItem.question);
+          const decodedCorrect = decodeHtmlEntities(rawItem.correct_answer);
+          const decodedIncorrect = Array.isArray(rawItem.incorrect_answers)
+            ? rawItem.incorrect_answers.map((ans) => decodeHtmlEntities(ans))
+            : [];
 
-  optionLabels.forEach((labelEl, idx) => {
-    const optionText = currentItem.options[idx];
-    const parentLabel = labelEl.closest('.option-btn');
-    const radioInput = parentLabel ? parentLabel.querySelector('input[type="radio"]') : null;
+          const mixedOptions = shuffleArray([decodedCorrect, ...decodedIncorrect]);
+          const correctIndex = mixedOptions.indexOf(decodedCorrect);
 
-    if (optionText !== undefined) {
-      labelEl.textContent = optionText;
-      if (parentLabel) parentLabel.hidden = false;
-      if (radioInput) radioInput.disabled = false;
-    } else {
-      labelEl.textContent = '';
-      if (parentLabel) parentLabel.hidden = true;
-      if (radioInput) {
-        radioInput.checked = false;
-        radioInput.disabled = true;
+          return {
+            id: idx + 1,
+            question: decodedQuestion,
+            options: mixedOptions,
+            correctIndex: correctIndex >= 0 ? correctIndex : 0,
+            answer: decodedCorrect,
+            answered: false
+          };
+        });
+
+        this.currentIndex = 0;
+        this.score = 0;
+        this.feedback = 'Завантажено нові питання з Open Trivia Database. Оберіть варіант відповіді.';
+      } catch (error) {
+        console.error('Помилка завантаження даних з Open Trivia Database:', error);
+        this.errorMessage = 'Не вдалося завантажити питання з сервісу вікторини. Перевірте з’єднання з інтернетом і натисніть «Оновити».';
+      } finally {
+        this.isLoading = false;
       }
     }
-  });
-}
-
-// Завантажує питання вікторини з публічного API Open Trivia Database: https://opentdb.com/api.php?amount=10&type=multiple
-async function loadData() {
-  showErrorMessage('');
-  setLoadingState(true);
-
-  try {
-    const response = await fetch(API_URL);
-
-    if (!response.ok) {
-      throw new Error(`HTTP-запит завершився зі статусом ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log('Отримані дані з Open Trivia Database:', data);
-
-    if (!data || !Array.isArray(data.results) || data.response_code !== 0 || data.results.length === 0) {
-      throw new Error('API повернуло порожній або некоректний список питань');
-    }
-
-    const mappedQuestions = data.results.map((rawItem) => {
-      const decodedQuestion = decodeHtmlEntities(rawItem.question);
-      const decodedCorrect = decodeHtmlEntities(rawItem.correct_answer);
-      const decodedIncorrect = Array.isArray(rawItem.incorrect_answers)
-        ? rawItem.incorrect_answers.map((ans) => decodeHtmlEntities(ans))
-        : [];
-
-      const mixedOptions = shuffleArray([decodedCorrect, ...decodedIncorrect]);
-      const correctIndex = mixedOptions.indexOf(decodedCorrect);
-
-      return {
-        question: decodedQuestion,
-        options: mixedOptions,
-        correctIndex: correctIndex >= 0 ? correctIndex : 0,
-        answer: decodedCorrect,
-        answered: false
-      };
-    });
-
-    quizData = mappedQuestions;
-    currentQuestionIndex = 0;
-    savedCorrectCount = 0;
-
-    renderQuestions(quizData);
-    renderCurrentQuestion(currentQuestionIndex);
-
-    if (quizForm) {
-      quizForm.reset();
-    }
-
-    if (feedbackEl) {
-      feedbackEl.textContent = 'Завантажено нові питання з Open Trivia Database. Оберіть варіант відповіді.';
-    }
-  } catch (error) {
-    console.error('Помилка завантаження даних з Open Trivia Database:', error);
-    showErrorMessage('Не вдалося завантажити питання з сервісу вікторини. Перевірте з’єднання з інтернетом і натисніть «Оновити».');
-  } finally {
-    setLoadingState(false);
+  },
+  mounted() {
+    this.loadQuestionsFromApi();
   }
-}
-
-// Початковий рендер до завершення запиту та запуск завантаження з API
-renderQuestions(quizData);
-renderCurrentQuestion(currentQuestionIndex);
-loadData();
-
-// Повторний виклик loadData() по натисканню кнопки «Оновити»
-if (refreshApiBtn) {
-  refreshApiBtn.addEventListener('click', () => {
-    loadData();
-  });
-}
-
-// Обробник надсилання форми (submit)
-// Скасовує перезавантаження сторінки, перевіряє обраний радіо-варіант та оновлює стан і список
-quizForm.addEventListener('submit', (event) => {
-  event.preventDefault();
-
-  const checkedRadio = quizForm.querySelector('input[name="quizOption"]:checked');
-  if (!checkedRadio) {
-    quizForm.reportValidity();
-    return;
-  }
-
-  const chosenIndex = Number(checkedRadio.value);
-  const currentItem = quizData[currentQuestionIndex];
-  if (!currentItem) return;
-
-  const isCorrect = chosenIndex === currentItem.correctIndex;
-
-  if (!currentItem.answered && isCorrect) {
-    savedCorrectCount++;
-  }
-  currentItem.answered = true;
-
-  if (feedbackEl) {
-    feedbackEl.textContent = isCorrect
-      ? `Правильно! Відповідь «${currentItem.options[chosenIndex]}» зараховано (рахунок: ${savedCorrectCount}/${quizData.length}).`
-      : `Неправильно. Ви обрали «${currentItem.options[chosenIndex]}», правильна відповідь: «${currentItem.answer}» (рахунок: ${savedCorrectCount}/${quizData.length}).`;
-  }
-
-  console.log(`Питання #${currentQuestionIndex + 1}: chosenIndex=${chosenIndex}, correctIndex=${currentItem.correctIndex}, результат=${isCorrect}`);
-
-  renderQuestions(quizData);
-});
-
-// Обробник кліку по кнопці «Наступне питання» (click)
-// Перемикає поточне питання по колу та скидає вибір радіокнопок через form.reset()
-nextQuestionBtn.addEventListener('click', () => {
-  if (!quizData.length) return;
-  currentQuestionIndex = (currentQuestionIndex + 1) % quizData.length;
-  renderCurrentQuestion(currentQuestionIndex);
-  quizForm.reset();
-
-  if (feedbackEl) {
-    feedbackEl.textContent = `Перейшли до питання ${currentQuestionIndex + 1}. Оберіть варіант відповіді.`;
-  }
-});
+}).mount('#app');

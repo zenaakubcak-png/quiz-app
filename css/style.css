@@ -5,26 +5,25 @@
 
 body {
     margin: 0;
-    /* Оновлено: два шрифти (Montserrat для заголовків, Nunito для тексту) */
     font-family: 'Nunito', system-ui, sans-serif;
     line-height: 1.5;
-    color: #333; /* Трохи м'якший темний колір для тексту, контраст > 4.5:1 */
-    background-color: #f4f4f9; 
+    color: #333;
+    background-color: #f4f4f9;
 }
 
-/* Налаштування шрифту заголовків */
 h1, h2, h3 {
     font-family: 'Montserrat', sans-serif;
 }
 
-/* =========================================
-   HEADER та навігація (Енергійна палітра) 
-   ========================================= */
 header {
-    background-color: #6f42c1; /* Фіолетовий колір за варіантом 8 */
+    background-color: #6f42c1;
     padding: 24px;
     color: white;
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
 }
 
 header h1 {
@@ -32,10 +31,16 @@ header h1 {
     font-size: 2.5rem;
 }
 
+header nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+}
+
 header nav a {
-    color: #ffc107; /* Жовтий акцент за варіантом 8 */
+    color: #ffc107;
     text-decoration: none;
-    margin-right: 20px;
     font-size: 1.2rem;
     font-weight: bold;
 }
@@ -45,12 +50,9 @@ header nav a:hover {
     color: #fff;
 }
 
-/* =========================================
-   ОСНОВНИЙ ВМІСТ (main)
-   ========================================= */
 main {
     max-width: 800px;
-    margin: 0 auto; /* Центрування контенту */
+    margin: 0 auto;
     padding: 20px;
 }
 
@@ -58,24 +60,14 @@ section {
     margin-bottom: 40px;
 }
 
-/* =========================================
-   СЕКЦІЯ ПОТОЧНОГО ПИТАННЯ (Варіант 8)
-   ========================================= */
 #current-question {
     background-color: white;
-    padding: 32px; /* Вимога: великий padding */
-    border-radius: 12px; /* Вимога: border-radius 12px */
-    text-align: center; /* Вимога: центрований текст */
+    padding: 32px;
+    border-radius: 12px;
+    text-align: center;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    border-top: 5px solid #ffc107; /* Жовтий акцент */
+    border-top: 5px solid #ffc107;
 }
-
-/* =========================================
-   РЕАЛІЗАЦІЯ НЕЧІТКОЇ ВИМОГИ (Гейміфікація)
-   ========================================= */
-/* Обґрунтування: Щоб проходження квізу було захопливим, додано виразний номер 
-   поточного питання та прогрес-індикатор. Це створює відчуття досягнення 
-   і мотивує користувача завершити тест. */
 
 .question-header {
     margin-bottom: 20px;
@@ -86,7 +78,7 @@ section {
     display: block;
     font-size: 1.5rem;
     font-weight: 700;
-    color: #6f42c1; /* Фіолетовий акцент */
+    color: #6f42c1;
     margin-bottom: 10px;
 }
 
@@ -100,32 +92,51 @@ section {
 
 .progress-bar {
     height: 100%;
-    background-color: #ffc107; /* Жовтий акцент */
+    background-color: #ffc107;
     border-radius: 5px;
     transition: width 0.3s ease;
 }
 
-/* Варіанти відповідей (стилізація label як кнопок) */
+img {
+    max-width: 100%;
+    height: auto;
+}
 
-#current-question label:hover {
-    background-color: #ffc107; /* Вимога: hover-ефект зміни фону */
+.options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 20px;
+}
+
+.option-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #e9ecef;
+    color: #222;
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    font-family: 'Nunito', system-ui, sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.option-btn:hover {
+    background-color: #ffc107;
     color: #000;
 }
 
-#current-question input[type="radio"] {
-    margin-right: 10px;
-}
-
-/* =========================================
-   СЕКЦІЯ ІСТОРІЇ СПРОБ (Варіант 8)
-   ========================================= */
 #history article {
     background-color: white;
-    padding: 10px; /* Вимога: компактніші, padding 10px */
+    padding: 16px;
     margin-bottom: 15px;
     border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    border-left: 4px solid #6f42c1; /* Фіолетовий акцент */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border-left: 5px solid #6f42c1;
 }
 
 #history h3 {
@@ -137,9 +148,6 @@ section {
     margin: 0;
 }
 
-/* =========================================
-   FOOTER
-   ========================================= */
 footer {
     text-align: center;
     padding: 20px;
@@ -149,127 +157,18 @@ footer {
     margin-top: 40px;
 }
 
-/* =========================================
-   АДАПТИВНА ВЕРСТКА (Mobile-First)
-   ========================================= */
-
-/* --- Мобільний (базові стилі до 599px) --- */
-header {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-}
-
-header nav {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 15px;
-}
-
-header nav a {
-    margin-right: 0; /* Скидаємо старий марджин, тепер працює gap */
-}
-
-/* Зображення не виходять за межі */
-img {
-    max-width: 100%;
-    height: auto;
-}
-
-/* Варіанти відповідей: стовпчик кнопок на всю ширину */
-.options {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-top: 20px;
-}
-
-.option-btn {
-    display: flex;
-    align-items: center;
-    background-color: #e9ecef;
-    padding: 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.option-btn input {
-    margin-right: 10px;
-}
-
-.option-btn:hover {
-    background-color: #ffc107;
-    color: #000;
-}
-
-/* =========================================
-   РЕАЛІЗАЦІЯ ЧІТКОЇ ВИМОГИ (Варіант 8)
-   ========================================= */
-/* Кольори для правильної та неправильної відповіді з контрастом >= 4.5:1 */
-
-.option-btn.correct {
-    background-color: #2e7d32; /* Темно-зелений (WCAG AA пройдено для білого тексту) */
-    color: #ffffff;
-    border: 2px solid #1b5e20;
-}
-
-.option-btn.incorrect {
-    background-color: #c62828; /* Темно-червоний (WCAG AA пройдено для білого тексту) */
-    color: #ffffff;
-    border: 2px solid #b71c1c;
-}
-
-/* Приховуємо текст результату за замовчуванням для невідмічених */
-.option-btn .result-text {
-    display: none;
-    margin-left: auto; /* Відкидає іконку/текст вправо */
-    font-weight: bold;
-}
-
-/* Показуємо текст результату для відмічених */
-.option-btn.correct .result-text,
-.option-btn.incorrect .result-text {
-    display: inline;
-}
-
-/* Відміняємо hover ефект для вже обраних відповідей */
-.option-btn.correct:hover {
-    background-color: #2e7d32;
-    color: #ffffff;
-}
-.option-btn.incorrect:hover {
-    background-color: #c62828;
-    color: #ffffff;
-}
-
-/* Картки історії спроб: 1 колонка */
 .history-cards {
     display: grid;
     grid-template-columns: 1fr;
     gap: 15px;
 }
 
-/* Скидаємо старий margin-bottom, щоб працював gap */
-#history article {
-    background-color: white;
-    padding: 16px; /* Збільшено padding для більшого "повітря" */
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); /* Трохи м'якша тінь */
-    border-left: 5px solid #6f42c1;
-}
-
-
-/* --- ПЛАНШЕТ (від 600px) --- */
 @media (min-width: 600px) {
     header {
         flex-direction: row;
         justify-content: space-between;
     }
-    
-    /* Варіанти відповідей: сітка 2 колонки */
+
     .options {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
@@ -277,23 +176,17 @@ img {
     }
 }
 
-/* --- ДЕСКТОП (від 1024px) --- */
 @media (min-width: 1024px) {
-    /* Картка питання центрована з max-width */
     #current-question {
         max-width: 600px;
         margin: 0 auto;
     }
-    
-    /* Картки історії спроб: 3 колонки */
+
     .history-cards {
         grid-template-columns: repeat(3, 1fr);
     }
 }
 
-/* =========================================
-   СПИСОК ПИТАНЬ ТА ПІДСУМОК (Практикум 7, Варіант 8)
-   ========================================= */
 #questions-bank {
     background-color: white;
     padding: 24px;
@@ -334,20 +227,16 @@ img {
     background-color: #faf8ff;
 }
 
-/* =========================================
-   КНОПКИ ФОРМИ ТА СТАТУС ВІДПОВІДІ (Практикум 8, Варіант 8)
-   ========================================= */
 .quiz-actions {
-    grid-column: 1 / -1;
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
     justify-content: center;
-    margin-top: 8px;
+    margin-top: 16px;
 }
 
-#submit-answer-btn,
-#next-question-btn {
+#next-question-btn,
+#refresh-api-btn {
     padding: 10px 18px;
     border: none;
     border-radius: 8px;
@@ -355,11 +244,6 @@ img {
     font-weight: 700;
     cursor: pointer;
     transition: opacity 0.2s ease, transform 0.2s ease;
-}
-
-#submit-answer-btn {
-    background-color: #6f42c1;
-    color: #ffffff;
 }
 
 #next-question-btn {
@@ -367,41 +251,12 @@ img {
     color: #222222;
 }
 
-#submit-answer-btn:hover,
-#next-question-btn:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
-}
-
-#quiz-feedback {
-    margin-top: 16px;
-    font-weight: 600;
-    color: #333333;
-}
-
-/* =========================================
-   КЕРУВАННЯ API, ЗАВАНТАЖЕННЯ ТА ПОМИЛКИ (Практикум 9, Варіант 8)
-   ========================================= */
-.api-controls {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-bottom: 12px;
-}
-
 #refresh-api-btn {
-    padding: 10px 18px;
-    border: none;
-    border-radius: 8px;
     background-color: #6f42c1;
     color: #ffffff;
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 700;
-    cursor: pointer;
-    transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
+#next-question-btn:hover,
 #refresh-api-btn:hover:not(:disabled) {
     opacity: 0.9;
     transform: translateY(-1px);
@@ -410,6 +265,20 @@ img {
 #refresh-api-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+}
+
+#quiz-feedback {
+    margin-top: 16px;
+    font-weight: 600;
+    color: #333333;
+}
+
+.api-controls {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 12px;
 }
 
 #loading-status {

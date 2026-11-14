@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-    <script src="script.js" defer></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Вікторина</title>
+    <title>Вікторина — Практикум 10 (Vue 3)</title>
     <link rel="stylesheet" href="css/style.css">
+    <!-- Vue 3 (глобальна CDN-збірка без збірки та Node.js) -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="script.js" defer></script>
 </head>
 <body>
     <!-- Шапка з назвою та навігацією -->
@@ -18,82 +20,77 @@
         </nav>
     </header>
 
-    <!-- Основний вміст -->
-    <main>
-        <!-- Секція поточного питання -->
-        <section id="current-question">
-            <div class="question-header">
-                <span class="question-number">Питання 1 з 4</span>
-                <div class="progress-bar-container">
-                    <div class="progress-bar" style="width: 25%;"></div>
+    <!-- Кореневий контейнер застосунку Vue 3 -->
+    <div id="app">
+        <main>
+            <!-- Секція поточного питання з компонентом QuizQuestion (Варіант 8) -->
+            <section id="current-question" v-if="currentQuestion">
+                <div class="question-header">
+                    <span class="question-number">Питання {{ currentIndex + 1 }} з {{ questions.length }}</span>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" :style="{ width: progressPercent + '%' }"></div>
+                    </div>
                 </div>
-            </div>
 
-            <h2>Поточне питання</h2>
-            <p id="question-text">Яке ключове слово використовується для оголошення змінної в JavaScript?</p>
+                <h2>Поточне питання</h2>
 
-            <form id="quiz-form" class="options">
-                <label class="option-btn" for="ans-0">
-                    <input type="radio" name="quizOption" id="ans-0" value="0" required>
-                    <span class="option-label">var</span>
-                </label>
-
-                <label class="option-btn" for="ans-1">
-                    <input type="radio" name="quizOption" id="ans-1" value="1" required>
-                    <span class="option-label">let</span>
-                </label>
-
-                <label class="option-btn" for="ans-2">
-                    <input type="radio" name="quizOption" id="ans-2" value="2" required>
-                    <span class="option-label">def</span>
-                </label>
-
-                <label class="option-btn" for="ans-3">
-                    <input type="radio" name="quizOption" id="ans-3" value="3" required>
-                    <span class="option-label"></span>
-                </label>
+                <quiz-question
+                    :question="currentQuestion.question"
+                    :options="currentQuestion.options"
+                    :correct-index="currentQuestion.correctIndex"
+                    @answer="handleAnswer"
+                ></quiz-question>
 
                 <div class="quiz-actions">
-                    <button type="submit" id="submit-answer-btn">Перевірити відповідь</button>
-                    <button type="button" id="next-question-btn">Наступне питання</button>
+                    <button type="button" id="next-question-btn" @click="nextQuestion">Наступне питання</button>
                 </div>
-            </form>
 
-            <p id="quiz-feedback" aria-live="polite">Оберіть варіант відповіді та натисніть «Перевірити відповідь».</p>
-        </section>
+                <p id="quiz-feedback" aria-live="polite">{{ feedback }}</p>
+            </section>
 
-        <!-- Секція списку питань (динамічний рендер за варіантом 8 + Open Trivia Database API) -->
-        <section id="questions-bank">
-            <h2>Список питань вікторини</h2>
+            <!-- Секція списку питань (декларативний рендер через v-for) -->
+            <section id="questions-bank">
+                <h2>Список питань вікторини</h2>
 
-            <div class="api-controls">
-                <button type="button" id="refresh-api-btn">Оновити</button>
-                <span id="loading-status" aria-live="polite" hidden>Завантаження питань з API...</span>
-            </div>
+                <div class="api-controls">
+                    <button type="button" id="refresh-api-btn" :disabled="isLoading" @click="loadQuestionsFromApi">
+                        Оновити
+                    </button>
+                    <span id="loading-status" aria-live="polite" v-if="isLoading">Завантаження питань з API...</span>
+                </div>
 
-            <p id="api-error" role="alert" hidden></p>
-            <p id="questions-count">Всього питань: 0</p>
-            <ul id="questions-list">
-                <!-- Статичний приклад-орієнтир з попереднього етапу; видаляється у script.js -->
-                <li class="static-example" data-answer="example">Приклад статичного питання для перевірки видалення</li>
-            </ul>
-        </section>
+                <p id="api-error" role="alert" v-if="errorMessage">{{ errorMessage }}</p>
+                <p id="questions-count">
+                    Всього питань: {{ questions.length }} | Збережено правильних: {{ score }}
+                </p>
 
-        <!-- Секція історії спроб -->
-        <section id="history">
-            <h2>Історія спроб</h2>
-            <div class="history-cards">
-                <article>
-                    <h3>15.09.2026 - Результат: 10/10</h3>
-                    <p>Відмінно! Всі відповіді правильні.</p>
-                </article>
-                <article>
-                    <h3>10.09.2026 - Результат: 6/10</h3>
-                    <p>Добре, але є куди рости.</p>
-                </article>
-            </div>
-        </section>
-    </main>
+                <ul id="questions-list">
+                    <li
+                        v-for="item in questions"
+                        :key="item.id"
+                        :class="{ answered: item.answered }"
+                    >
+                        {{ item.question }} — <strong>Правильна відповідь: {{ item.answer }}</strong>
+                    </li>
+                </ul>
+            </section>
+
+            <!-- Секція історії спроб -->
+            <section id="history">
+                <h2>Історія спроб</h2>
+                <div class="history-cards">
+                    <article>
+                        <h3>15.09.2026 - Результат: 10/10</h3>
+                        <p>Відмінно! Всі відповіді правильні.</p>
+                    </article>
+                    <article>
+                        <h3>10.09.2026 - Результат: 6/10</h3>
+                        <p>Добре, але є куди рости.</p>
+                    </article>
+                </div>
+            </section>
+        </main>
+    </div>
 
     <!-- Підвал -->
     <footer>
