@@ -290,6 +290,7 @@ img {
         grid-template-columns: repeat(3, 1fr);
     }
 }
+
 /* =========================================
    СПИСОК ПИТАНЬ ТА ПІДСУМОК (Практикум 7, Варіант 8)
    ========================================= */
@@ -332,6 +333,7 @@ img {
     border-left-color: #6f42c1;
     background-color: #faf8ff;
 }
+
 /* =========================================
    КНОПКИ ФОРМИ ТА СТАТУС ВІДПОВІДІ (Практикум 8, Варіант 8)
    ========================================= */
@@ -375,4 +377,52 @@ img {
     margin-top: 16px;
     font-weight: 600;
     color: #333333;
+}
+
+/* =========================================
+   КЕРУВАННЯ API, ЗАВАНТАЖЕННЯ ТА ПОМИЛКИ (Практикум 9, Варіант 8)
+   ========================================= */
+.api-controls {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+#refresh-api-btn {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    background-color: #6f42c1;
+    color: #ffffff;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+#refresh-api-btn:hover:not(:disabled) {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+#refresh-api-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+#loading-status {
+    font-weight: 600;
+    color: #6f42c1;
+}
+
+#api-error {
+    margin: 0 0 14px 0;
+    padding: 12px 16px;
+    border-radius: 8px;
+    background-color: #fdecea;
+    color: #b71c1c;
+    border-left: 4px solid #c62828;
+    font-weight: 600;
 }

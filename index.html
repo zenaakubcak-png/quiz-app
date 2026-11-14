@@ -48,6 +48,11 @@
                     <span class="option-label">def</span>
                 </label>
 
+                <label class="option-btn" for="ans-3">
+                    <input type="radio" name="quizOption" id="ans-3" value="3" required>
+                    <span class="option-label"></span>
+                </label>
+
                 <div class="quiz-actions">
                     <button type="submit" id="submit-answer-btn">Перевірити відповідь</button>
                     <button type="button" id="next-question-btn">Наступне питання</button>
@@ -57,9 +62,16 @@
             <p id="quiz-feedback" aria-live="polite">Оберіть варіант відповіді та натисніть «Перевірити відповідь».</p>
         </section>
 
-        <!-- Секція списку питань (динамічний рендер за варіантом 8) -->
+        <!-- Секція списку питань (динамічний рендер за варіантом 8 + Open Trivia Database API) -->
         <section id="questions-bank">
             <h2>Список питань вікторини</h2>
+
+            <div class="api-controls">
+                <button type="button" id="refresh-api-btn">Оновити</button>
+                <span id="loading-status" aria-live="polite" hidden>Завантаження питань з API...</span>
+            </div>
+
+            <p id="api-error" role="alert" hidden></p>
             <p id="questions-count">Всього питань: 0</p>
             <ul id="questions-list">
                 <!-- Статичний приклад-орієнтир з попереднього етапу; видаляється у script.js -->

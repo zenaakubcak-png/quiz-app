@@ -1,3 +1,6 @@
+// Константа ендпоінта публічного API для варіанту 8 (Open Trivia Database)
+const API_URL = 'https://opentdb.com/api.php?amount=10&type=multiple';
+
 // Перевірка підключення
 // Виводимо повідомлення, щоб переконатися, що файл успішно підключено до HTML
 console.log('script.js підключено');
@@ -8,9 +11,8 @@ if (staticExample) {
   staticExample.remove();
 }
 
-// Оголошення даних свого варіанта
-// Масив об'єктів з питаннями вікторини, варіантами вибору та індексом правильної відповіді
-const quizData = [
+// Початковий масив об'єктів з питаннями вікторини (оновлюється даними з API)
+let quizData = [
   {
     question: "Яке ключове слово використовується для оголошення змінної в JavaScript?",
     options: ["var", "let", "def"],
@@ -41,7 +43,7 @@ const quizData = [
   }
 ];
 
-// Обираємо елементи DOM для списку питань, підсумку та інтерактивної форми
+// Обираємо елементи DOM для списку питань, підсумку, інтерактивної форми та станів API
 const listContainer = document.querySelector('#questions-list');
 const questionsCountEl = document.querySelector('#questions-count');
 const quizForm = document.querySelector('#quiz-form');
@@ -51,11 +53,54 @@ const questionNumberEl = document.querySelector('.question-number');
 const progressBarEl = document.querySelector('.progress-bar');
 const feedbackEl = document.querySelector('#quiz-feedback');
 const optionLabels = document.querySelectorAll('#quiz-form .option-label');
+const refreshApiBtn = document.querySelector('#refresh-api-btn');
+const loadingStatusEl = document.querySelector('#loading-status');
+const apiErrorEl = document.querySelector('#api-error');
 
 let currentQuestionIndex = 0;
 let savedCorrectCount = 0;
 
-// Функція рендеру списку питань у DOM
+// Розкодовує HTML-сутності (&quot;, &#039;, &amp; тощо) з рядків відповіді Open Trivia Database
+function decodeHtmlEntities(text) {
+  if (typeof text !== 'string') return '';
+  const parser = new DOMParser();
+  const parsedDoc = parser.parseFromString(text, 'text/html');
+  return parsedDoc.documentElement.textContent ?? '';
+}
+
+// Перемішує копію масиву варіантів відповіді (алгоритм Фішера — Єйтса)
+function shuffleArray(items) {
+  const copy = [...items];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+// Керує видимістю індикатора завантаження та станом кнопки «Оновити»
+function setLoadingState(isLoading) {
+  if (loadingStatusEl) {
+    loadingStatusEl.hidden = !isLoading;
+  }
+  if (refreshApiBtn) {
+    refreshApiBtn.disabled = isLoading;
+  }
+}
+
+// Відображає або приховує зрозуміле повідомлення про помилку для користувача
+function showErrorMessage(message) {
+  if (!apiErrorEl) return;
+  if (!message) {
+    apiErrorEl.textContent = '';
+    apiErrorEl.hidden = true;
+    return;
+  }
+  apiErrorEl.textContent = message;
+  apiErrorEl.hidden = false;
+}
+
+// Функція рендеру списку питань у DOM (повторно використана з практикуму 7)
 // Очищає контейнер, створює елементи <li> для кожного питання, додає data-answer та умовний клас
 function renderQuestions(questions) {
   if (!listContainer) return;
@@ -98,13 +143,96 @@ function renderCurrentQuestion(index) {
   }
 
   optionLabels.forEach((labelEl, idx) => {
-    labelEl.textContent = currentItem.options[idx] ?? '';
+    const optionText = currentItem.options[idx];
+    const parentLabel = labelEl.closest('.option-btn');
+    const radioInput = parentLabel ? parentLabel.querySelector('input[type="radio"]') : null;
+
+    if (optionText !== undefined) {
+      labelEl.textContent = optionText;
+      if (parentLabel) parentLabel.hidden = false;
+      if (radioInput) radioInput.disabled = false;
+    } else {
+      labelEl.textContent = '';
+      if (parentLabel) parentLabel.hidden = true;
+      if (radioInput) {
+        radioInput.checked = false;
+        radioInput.disabled = true;
+      }
+    }
   });
 }
 
-// Викликаємо початковий рендер списку питань та поточного питання
+// Завантажує питання вікторини з публічного API Open Trivia Database: https://opentdb.com/api.php?amount=10&type=multiple
+async function loadData() {
+  showErrorMessage('');
+  setLoadingState(true);
+
+  try {
+    const response = await fetch(API_URL);
+
+    if (!response.ok) {
+      throw new Error(`HTTP-запит завершився зі статусом ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('Отримані дані з Open Trivia Database:', data);
+
+    if (!data || !Array.isArray(data.results) || data.response_code !== 0 || data.results.length === 0) {
+      throw new Error('API повернуло порожній або некоректний список питань');
+    }
+
+    const mappedQuestions = data.results.map((rawItem) => {
+      const decodedQuestion = decodeHtmlEntities(rawItem.question);
+      const decodedCorrect = decodeHtmlEntities(rawItem.correct_answer);
+      const decodedIncorrect = Array.isArray(rawItem.incorrect_answers)
+        ? rawItem.incorrect_answers.map((ans) => decodeHtmlEntities(ans))
+        : [];
+
+      const mixedOptions = shuffleArray([decodedCorrect, ...decodedIncorrect]);
+      const correctIndex = mixedOptions.indexOf(decodedCorrect);
+
+      return {
+        question: decodedQuestion,
+        options: mixedOptions,
+        correctIndex: correctIndex >= 0 ? correctIndex : 0,
+        answer: decodedCorrect,
+        answered: false
+      };
+    });
+
+    quizData = mappedQuestions;
+    currentQuestionIndex = 0;
+    savedCorrectCount = 0;
+
+    renderQuestions(quizData);
+    renderCurrentQuestion(currentQuestionIndex);
+
+    if (quizForm) {
+      quizForm.reset();
+    }
+
+    if (feedbackEl) {
+      feedbackEl.textContent = 'Завантажено нові питання з Open Trivia Database. Оберіть варіант відповіді.';
+    }
+  } catch (error) {
+    console.error('Помилка завантаження даних з Open Trivia Database:', error);
+    showErrorMessage('Не вдалося завантажити питання з сервісу вікторини. Перевірте з’єднання з інтернетом і натисніть «Оновити».');
+  } finally {
+    setLoadingState(false);
+  }
+}
+
+// Початковий рендер до завершення запиту та запуск завантаження з API
 renderQuestions(quizData);
 renderCurrentQuestion(currentQuestionIndex);
+loadData();
+
+// Повторний виклик loadData() по натисканню кнопки «Оновити»
+if (refreshApiBtn) {
+  refreshApiBtn.addEventListener('click', () => {
+    loadData();
+  });
+}
 
 // Обробник надсилання форми (submit)
 // Скасовує перезавантаження сторінки, перевіряє обраний радіо-варіант та оновлює стан і список
@@ -119,6 +247,8 @@ quizForm.addEventListener('submit', (event) => {
 
   const chosenIndex = Number(checkedRadio.value);
   const currentItem = quizData[currentQuestionIndex];
+  if (!currentItem) return;
+
   const isCorrect = chosenIndex === currentItem.correctIndex;
 
   if (!currentItem.answered && isCorrect) {
@@ -140,6 +270,7 @@ quizForm.addEventListener('submit', (event) => {
 // Обробник кліку по кнопці «Наступне питання» (click)
 // Перемикає поточне питання по колу та скидає вибір радіокнопок через form.reset()
 nextQuestionBtn.addEventListener('click', () => {
+  if (!quizData.length) return;
   currentQuestionIndex = (currentQuestionIndex + 1) % quizData.length;
   renderCurrentQuestion(currentQuestionIndex);
   quizForm.reset();
@@ -148,21 +279,3 @@ nextQuestionBtn.addEventListener('click', () => {
     feedbackEl.textContent = `Перейшли до питання ${currentQuestionIndex + 1}. Оберіть варіант відповіді.`;
   }
 });
-
-// Функція для обробки даних циклом та умовної класифікації (з практикуму 6)
-function processQuiz(questions, userAnswer) {
-  let correctAnswersCount = 0;
-
-  for (const item of questions) {
-    if (userAnswer === item.answer) {
-      correctAnswersCount++;
-    }
-  }
-
-  return correctAnswersCount;
-}
-
-const totalCorrect = processQuiz(quizData, "let");
-const calcScorePercent = (correctCount, total) => Math.round((correctCount / total) * 100);
-const finalPercent = calcScorePercent(totalCorrect, quizData.length);
-console.log(`Тестовий підсумок за "let": ${totalCorrect} з ${quizData.length} (${finalPercent}%)`);
