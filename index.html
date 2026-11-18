@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Вікторина — Практикум 11 (localStorage / IndexedDB)</title>
+    <title>Вікторина — Практикум 12 (Canvas / requestAnimationFrame)</title>
     <link rel="stylesheet" href="css/style.css">
     <!-- Vue 3 (глобальна CDN-збірка без збірки та Node.js) -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -23,12 +23,23 @@
     <!-- Кореневий контейнер застосунку Vue 3 -->
     <div id="app">
         <main>
-            <!-- Секція поточного питання з компонентом QuizQuestion (Варіант 8) -->
+            <!-- Секція поточного питання з компонентом QuizQuestion та Canvas-таймером (Варіант 8) -->
             <section id="current-question" v-if="currentQuestion">
                 <div class="question-header">
                     <span class="question-number">Питання {{ currentIndex + 1 }} з {{ questions.length }}</span>
                     <div class="progress-bar-container">
                         <div class="progress-bar" :style="{ width: progressPercent + '%' }"></div>
+                    </div>
+                </div>
+
+                <div class="timer-widget" aria-live="polite">
+                    <canvas id="countdown-canvas" width="96" height="96"></canvas>
+                    <div class="timer-meta">
+                        <span class="timer-label">Час на відповідь</span>
+                        <strong class="timer-seconds">{{ remainingSeconds }} сек</strong>
+                        <button type="button" id="toggle-timer-btn" @click="toggleTimer">
+                            {{ isTimerPaused ? 'Продовжити таймер' : 'Пауза таймера' }}
+                        </button>
                     </div>
                 </div>
 

@@ -1,4 +1,4 @@
-// Обрано Vue 3 через CDN, оскільки він працює без збірки та Node.js, має реактивний стан і зручний перегляд у DevTools.
+// Обрано Vue 3 через CDN та Canvas API з requestAnimationFrame (варіант 8: анімований таймер зворотного відліку у вигляді дуги ctx.arc()).
 
 const API_URL = 'https://opentdb.com/api.php?amount=10&type=multiple';
 const LOCAL_STORAGE_KEY = 'quizResults_variant8';
@@ -6,8 +6,7 @@ const MIGRATED_FLAG_KEY = 'quizResults_migrated_to_idb_v1';
 const DB_NAME = 'QuizDB';
 const DB_VERSION = 1;
 const STORE_NAME = 'results';
-
-// Модель запису результату проходження (Варіант 8): { id (autoIncrement), date, score, total }
+const QUESTION_TIME_LIMIT_MS = 15000;
 
 // Зберігає масив результатів у localStorage у вигляді JSON-рядка
 function saveToLocalStorage(items) {
@@ -231,7 +230,11 @@ Vue.createApp({
       feedback: 'Оберіть варіант відповіді, клікнувши по ньому.',
       isLoading: false,
       errorMessage: '',
-      storageError: ''
+      storageError: '',
+      remainingMs: QUESTION_TIME_LIMIT_MS,
+      isTimerPaused: false,
+      rafId: null,
+      lastFrameTime: null
     };
   },
   computed: {
@@ -242,6 +245,9 @@ Vue.createApp({
       if (!this.questions.length) return 0;
       return Math.round(((this.currentIndex + 1) / this.questions.length) * 100);
     },
+    remainingSeconds() {
+      return Math.max(0, Math.ceil(this.remainingMs / 1000));
+    },
     sortedResults() {
       return [...this.results].sort((a, b) => {
         if (b.score !== a.score) return b.score - a.score;
@@ -250,6 +256,92 @@ Vue.createApp({
     }
   },
   methods: {
+    // Зупиняє активний цикл requestAnimationFrame, щоб уникнути зайвого навантаження
+    stopTimerAnimation() {
+      if (this.rafId !== null) {
+        cancelAnimationFrame(this.rafId);
+        this.rafId = null;
+      }
+      this.lastFrameTime = null;
+    },
+    // Скидає таймер поточного питання та запускає цикл перемальовування на Canvas
+    resetAndStartTimer() {
+      this.stopTimerAnimation();
+      this.remainingMs = QUESTION_TIME_LIMIT_MS;
+      this.isTimerPaused = false;
+      this.drawCountdownArc(1);
+      this.rafId = requestAnimationFrame(this.stepTimerFrame);
+    },
+    // Перемикає паузу/продовження таймера та коректно зупиняє або відновлює requestAnimationFrame
+    toggleTimer() {
+      if (this.isTimerPaused) {
+        this.isTimerPaused = false;
+        this.lastFrameTime = null;
+        this.rafId = requestAnimationFrame(this.stepTimerFrame);
+      } else {
+        this.isTimerPaused = true;
+        this.stopTimerAnimation();
+        this.drawCountdownArc(this.remainingMs / QUESTION_TIME_LIMIT_MS);
+      }
+    },
+    // Кадр анімації через requestAnimationFrame: оновлює залишок часу та малює дугу через ctx.arc()
+    stepTimerFrame(timestamp) {
+      if (this.isTimerPaused) {
+        this.stopTimerAnimation();
+        return;
+      }
+
+      if (this.lastFrameTime === null) {
+        this.lastFrameTime = timestamp;
+      }
+
+      const deltaMs = timestamp - this.lastFrameTime;
+      this.lastFrameTime = timestamp;
+      this.remainingMs = Math.max(0, this.remainingMs - deltaMs);
+
+      const ratio = this.remainingMs / QUESTION_TIME_LIMIT_MS;
+      this.drawCountdownArc(ratio);
+
+      if (this.remainingMs > 0) {
+        this.rafId = requestAnimationFrame(this.stepTimerFrame);
+      } else {
+        this.stopTimerAnimation();
+        this.feedback = `Час на питання ${this.currentIndex + 1} вичерпано. Натисніть «Наступне питання».`;
+      }
+    },
+    // Очищає Canvas і малює зменшувану дугу зворотного відліку через ctx.arc()
+    drawCountdownArc(ratio) {
+      const canvas = document.querySelector('#countdown-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      const clampedRatio = Math.max(0, Math.min(1, ratio));
+      const width = canvas.width;
+      const height = canvas.height;
+      const centerX = width / 2;
+      const centerY = height / 2;
+      const radius = Math.min(centerX, centerY) - 10;
+
+      ctx.clearRect(0, 0, width, height);
+
+      ctx.save();
+      ctx.lineWidth = 8;
+      ctx.strokeStyle = '#e9ecef';
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+      ctx.stroke();
+
+      const startAngle = -Math.PI / 2;
+      const endAngle = startAngle + Math.PI * 2 * clampedRatio;
+
+      ctx.strokeStyle = clampedRatio > 0.25 ? '#6f42c1' : '#c62828';
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+      ctx.stroke();
+      ctx.restore();
+    },
     async refreshResultsFromDB() {
       try {
         this.storageError = '';
@@ -308,6 +400,8 @@ Vue.createApp({
       const current = this.currentQuestion;
       if (!current) return;
 
+      this.stopTimerAnimation();
+
       const isCorrect = selectedIndex === current.correctIndex;
       if (!current.answered && isCorrect) {
         this.score += 1;
@@ -327,6 +421,7 @@ Vue.createApp({
       if (!this.questions.length) return;
       this.currentIndex = (this.currentIndex + 1) % this.questions.length;
       this.feedback = `Перейшли до питання ${this.currentIndex + 1}. Оберіть варіант відповіді.`;
+      this.resetAndStartTimer();
     },
     async loadQuestionsFromApi() {
       this.errorMessage = '';
@@ -366,6 +461,7 @@ Vue.createApp({
         this.currentIndex = 0;
         this.score = 0;
         this.feedback = 'Завантажено нові питання з Open Trivia Database. Оберіть варіант відповіді.';
+        this.resetAndStartTimer();
       } catch (error) {
         console.error('Помилка завантаження даних з Open Trivia Database:', error);
         this.errorMessage = 'Не вдалося завантажити питання з сервісу вікторини. Перевірте з’єднання з інтернетом і натисніть «Оновити».';
@@ -375,7 +471,11 @@ Vue.createApp({
     }
   },
   async mounted() {
+    this.resetAndStartTimer();
     await this.refreshResultsFromDB();
     await this.loadQuestionsFromApi();
+  },
+  beforeUnmount() {
+    this.stopTimerAnimation();
   }
 }).mount('#app');
