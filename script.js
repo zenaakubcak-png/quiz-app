@@ -1,12 +1,136 @@
-// Обрано Vue 3 через CDN, оскільки він підключається одним тегом без збірки/Babel, має зручну реактивність та наочне дерево стану у Vue DevTools.
+// Обрано Vue 3 через CDN, оскільки він працює без збірки та Node.js, має реактивний стан і зручний перегляд у DevTools.
 
 const API_URL = 'https://opentdb.com/api.php?amount=10&type=multiple';
+const LOCAL_STORAGE_KEY = 'quizResults_variant8';
+const MIGRATED_FLAG_KEY = 'quizResults_migrated_to_idb_v1';
+const DB_NAME = 'QuizDB';
+const DB_VERSION = 1;
+const STORE_NAME = 'results';
 
-/*
-  Функцію ручного рендеру списку renderQuestions(questions) з практикуму 7 замінено
-  на декларативний рендер у Vue 3 через директиву v-for та компонент QuizQuestion
-  (без ручного виклику createElement, querySelector чи innerHTML для списку).
-*/
+// Модель запису результату проходження (Варіант 8): { id (autoIncrement), date, score, total }
+
+// Зберігає масив результатів у localStorage у вигляді JSON-рядка
+function saveToLocalStorage(items) {
+  try {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(items));
+  } catch (error) {
+    console.error('Помилка запису в localStorage:', error);
+  }
+}
+
+// Зчитує масив результатів із localStorage з безпечним розбором JSON через try/catch
+function loadFromLocalStorage() {
+  try {
+    const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.error('Пошкоджені дані в localStorage:', error);
+    return [];
+  }
+}
+
+// Відкриває базу даних IndexedDB та створює об'єктне сховище "results" з автоінкрементом ключа id
+function openDB() {
+  return new Promise((resolve, reject) => {
+    if (typeof indexedDB === 'undefined') {
+      reject(new Error('IndexedDB не підтримується у цьому середовищі або режимі перегляду'));
+      return;
+    }
+
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+      }
+    };
+
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error || new Error('Не вдалося відкрити базу IndexedDB'));
+  });
+}
+
+// Додає новий запис результату в об'єктне сховище "results" у транзакції readwrite
+async function addItem(item) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    const payload = {
+      date: item.date,
+      score: item.score,
+      total: item.total
+    };
+    const request = store.add(payload);
+
+    request.onsuccess = () => resolve(request.result);
+    tx.onerror = () => reject(tx.error || new Error('Помилка додавання запису в IndexedDB'));
+    tx.onabort = () => reject(tx.error || new Error('Транзакцію додавання скасовано'));
+  });
+}
+
+// Оновлює існуючий запис за keyPath ("id") через put у транзакції readwrite
+async function updateItem(item) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    const request = store.put(item);
+
+    request.onsuccess = () => resolve(request.result);
+    tx.onerror = () => reject(tx.error || new Error('Помилка оновлення запису в IndexedDB'));
+  });
+}
+
+// Повертає всі записи зі сховища "results" у транзакції readonly
+async function getAllItems() {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readonly');
+    const store = tx.objectStore(STORE_NAME);
+    const request = store.getAll();
+
+    request.onsuccess = () => resolve(Array.isArray(request.result) ? request.result : []);
+    request.onerror = () => reject(request.error || new Error('Помилка читання записів з IndexedDB'));
+  });
+}
+
+// Видаляє запис за ключем id зі сховища "results" у транзакції readwrite
+async function deleteItem(id) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    const request = store.delete(id);
+
+    request.onsuccess = () => resolve();
+    tx.onerror = () => reject(tx.error || new Error('Помилка видалення запису з IndexedDB'));
+  });
+}
+
+// Одноразово переносить дані з localStorage у порожнє сховище IndexedDB та позначає міграцію прапорцем
+async function migrateLocalStorageToIndexedDB() {
+  const alreadyMigrated = localStorage.getItem(MIGRATED_FLAG_KEY) === 'true';
+  if (alreadyMigrated) return;
+
+  const existingItems = await getAllItems();
+  const localItems = loadFromLocalStorage();
+
+  if (existingItems.length === 0 && localItems.length > 0) {
+    for (const entry of localItems) {
+      await addItem({
+        date: entry.date || new Date().toLocaleDateString('uk-UA'),
+        score: Number(entry.score) || 0,
+        total: Number(entry.total) || 0
+      });
+    }
+  }
+
+  localStorage.setItem(MIGRATED_FLAG_KEY, 'true');
+}
 
 // Допоміжна функція розкодування HTML-сутностей (&quot;, &#039;, &amp; тощо) з Open Trivia Database
 function decodeHtmlEntities(text) {
@@ -101,11 +225,13 @@ Vue.createApp({
           answered: false
         }
       ],
+      results: [],
       currentIndex: 0,
       score: 0,
       feedback: 'Оберіть варіант відповіді, клікнувши по ньому.',
       isLoading: false,
-      errorMessage: ''
+      errorMessage: '',
+      storageError: ''
     };
   },
   computed: {
@@ -115,10 +241,70 @@ Vue.createApp({
     progressPercent() {
       if (!this.questions.length) return 0;
       return Math.round(((this.currentIndex + 1) / this.questions.length) * 100);
+    },
+    sortedResults() {
+      return [...this.results].sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score;
+        return b.total - a.total;
+      });
     }
   },
   methods: {
-    handleAnswer(selectedIndex) {
+    async refreshResultsFromDB() {
+      try {
+        this.storageError = '';
+        await migrateLocalStorageToIndexedDB();
+        const items = await getAllItems();
+        this.results = items;
+        saveToLocalStorage(items);
+      } catch (error) {
+        console.error('Помилка роботи з IndexedDB:', error);
+        this.storageError = 'Локальна база результатів (IndexedDB) недоступна у цьому браузері або режимі перегляду.';
+      }
+    },
+    async finishAndSaveResult() {
+      const record = {
+        date: new Date().toLocaleDateString('uk-UA'),
+        score: this.score,
+        total: this.questions.length
+      };
+
+      const updatedLocal = [...loadFromLocalStorage(), { id: Date.now(), ...record }];
+      saveToLocalStorage(updatedLocal);
+
+      try {
+        this.storageError = '';
+        await addItem(record);
+        this.results = await getAllItems();
+        this.feedback = `Результат ${record.score}/${record.total} збережено у сховище «results».`;
+      } catch (error) {
+        console.error('Помилка збереження результату в IndexedDB:', error);
+        this.storageError = 'Не вдалося зберегти результат у IndexedDB. Перевірте доступність локального сховища браузера.';
+      }
+    },
+    async removeResult(id) {
+      try {
+        this.storageError = '';
+        await deleteItem(id);
+        this.results = await getAllItems();
+        saveToLocalStorage(this.results);
+      } catch (error) {
+        console.error('Помилка видалення результату з IndexedDB:', error);
+        this.storageError = 'Не вдалося видалити запис із бази IndexedDB.';
+      }
+    },
+    async updateResultScore(item, newScore) {
+      try {
+        this.storageError = '';
+        await updateItem({ ...item, score: newScore });
+        this.results = await getAllItems();
+        saveToLocalStorage(this.results);
+      } catch (error) {
+        console.error('Помилка оновлення результату в IndexedDB:', error);
+        this.storageError = 'Не вдалося оновити запис у базі IndexedDB.';
+      }
+    },
+    async handleAnswer(selectedIndex) {
       const current = this.currentQuestion;
       if (!current) return;
 
@@ -131,6 +317,11 @@ Vue.createApp({
       this.feedback = isCorrect
         ? `Правильно! Відповідь «${current.options[selectedIndex]}» зараховано (рахунок: ${this.score}/${this.questions.length}).`
         : `Неправильно. Ви обрали «${current.options[selectedIndex]}», правильна відповідь: «${current.answer}» (рахунок: ${this.score}/${this.questions.length}).`;
+
+      const allAnswered = this.questions.length > 0 && this.questions.every((q) => q.answered);
+      if (allAnswered) {
+        await this.finishAndSaveResult();
+      }
     },
     nextQuestion() {
       if (!this.questions.length) return;
@@ -183,7 +374,8 @@ Vue.createApp({
       }
     }
   },
-  mounted() {
-    this.loadQuestionsFromApi();
+  async mounted() {
+    await this.refreshResultsFromDB();
+    await this.loadQuestionsFromApi();
   }
 }).mount('#app');

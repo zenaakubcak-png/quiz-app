@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Вікторина — Практикум 10 (Vue 3)</title>
+    <title>Вікторина — Практикум 11 (localStorage / IndexedDB)</title>
     <link rel="stylesheet" href="css/style.css">
     <!-- Vue 3 (глобальна CDN-збірка без збірки та Node.js) -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -43,6 +43,9 @@
 
                 <div class="quiz-actions">
                     <button type="button" id="next-question-btn" @click="nextQuestion">Наступне питання</button>
+                    <button type="button" id="save-result-btn" @click="finishAndSaveResult">
+                        Завершити та зберегти результат
+                    </button>
                 </div>
 
                 <p id="quiz-feedback" aria-live="polite">{{ feedback }}</p>
@@ -75,17 +78,29 @@
                 </ul>
             </section>
 
-            <!-- Секція історії спроб -->
+            <!-- Секція результатів проходжень (IndexedDB + localStorage міграція, Варіант 8) -->
             <section id="history">
-                <h2>Історія спроб</h2>
-                <div class="history-cards">
-                    <article>
-                        <h3>15.09.2026 - Результат: 10/10</h3>
-                        <p>Відмінно! Всі відповіді правильні.</p>
-                    </article>
-                    <article>
-                        <h3>10.09.2026 - Результат: 6/10</h3>
-                        <p>Добре, але є куди рости.</p>
+                <h2>Найкращі результати проходжень</h2>
+
+                <p id="storage-error" role="alert" v-if="storageError">{{ storageError }}</p>
+
+                <div class="results-actions">
+                    <button type="button" id="save-current-result-btn" @click="finishAndSaveResult">
+                        Зберегти поточний результат ({{ score }}/{{ questions.length }})
+                    </button>
+                </div>
+
+                <p v-if="!sortedResults.length" class="empty-results">
+                    Збережених результатів поки немає. Завершіть квіз або натисніть «Зберегти поточний результат».
+                </p>
+
+                <div class="history-cards" v-else>
+                    <article v-for="res in sortedResults" :key="res.id">
+                        <h3>{{ res.date }} — Результат: {{ res.score }}/{{ res.total }}</h3>
+                        <p>Точність: {{ res.total ? Math.round((res.score / res.total) * 100) : 0 }}%</p>
+                        <button type="button" class="delete-result-btn" @click="removeResult(res.id)">
+                            Видалити
+                        </button>
                     </article>
                 </div>
             </section>
