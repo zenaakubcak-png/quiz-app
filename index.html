@@ -3,120 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Вікторина — Практикум 12 (Canvas / requestAnimationFrame)</title>
+    <title>Вікторина — Практикум 13 (SPA)</title>
     <link rel="stylesheet" href="css/style.css">
-    <!-- Vue 3 (глобальна CDN-збірка без збірки та Node.js) -->
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="script.js" defer></script>
 </head>
 <body>
-    <!-- Шапка з назвою та навігацією -->
+    <!-- Шапка з навігацією через клієнтський роутер (History API) -->
     <header>
         <h1>Вікторина</h1>
-        <nav>
-            <a href="#current-question">Питання</a>
-            <a href="#questions-bank">Список питань</a>
-            <a href="#history">Результати</a>
+        <nav aria-label="Основна навігація">
+            <a href="/" data-link>Головна</a>
+            <a href="/quiz" data-link>Квіз</a>
+            <a href="/results" data-link>Результати</a>
         </nav>
     </header>
 
-    <!-- Кореневий контейнер застосунку Vue 3 -->
-    <div id="app">
-        <main>
-            <!-- Секція поточного питання з компонентом QuizQuestion та Canvas-таймером (Варіант 8) -->
-            <section id="current-question" v-if="currentQuestion">
-                <div class="question-header">
-                    <span class="question-number">Питання {{ currentIndex + 1 }} з {{ questions.length }}</span>
-                    <div class="progress-bar-container">
-                        <div class="progress-bar" :style="{ width: progressPercent + '%' }"></div>
-                    </div>
-                </div>
-
-                <div class="timer-widget" aria-live="polite">
-                    <canvas id="countdown-canvas" width="96" height="96"></canvas>
-                    <div class="timer-meta">
-                        <span class="timer-label">Час на відповідь</span>
-                        <strong class="timer-seconds">{{ remainingSeconds }} сек</strong>
-                        <button type="button" id="toggle-timer-btn" @click="toggleTimer">
-                            {{ isTimerPaused ? 'Продовжити таймер' : 'Пауза таймера' }}
-                        </button>
-                    </div>
-                </div>
-
-                <h2>Поточне питання</h2>
-
-                <quiz-question
-                    :question="currentQuestion.question"
-                    :options="currentQuestion.options"
-                    :correct-index="currentQuestion.correctIndex"
-                    @answer="handleAnswer"
-                ></quiz-question>
-
-                <div class="quiz-actions">
-                    <button type="button" id="next-question-btn" @click="nextQuestion">Наступне питання</button>
-                    <button type="button" id="save-result-btn" @click="finishAndSaveResult">
-                        Завершити та зберегти результат
-                    </button>
-                </div>
-
-                <p id="quiz-feedback" aria-live="polite">{{ feedback }}</p>
-            </section>
-
-            <!-- Секція списку питань (декларативний рендер через v-for) -->
-            <section id="questions-bank">
-                <h2>Список питань вікторини</h2>
-
-                <div class="api-controls">
-                    <button type="button" id="refresh-api-btn" :disabled="isLoading" @click="loadQuestionsFromApi">
-                        Оновити
-                    </button>
-                    <span id="loading-status" aria-live="polite" v-if="isLoading">Завантаження питань з API...</span>
-                </div>
-
-                <p id="api-error" role="alert" v-if="errorMessage">{{ errorMessage }}</p>
-                <p id="questions-count">
-                    Всього питань: {{ questions.length }} | Збережено правильних: {{ score }}
-                </p>
-
-                <ul id="questions-list">
-                    <li
-                        v-for="item in questions"
-                        :key="item.id"
-                        :class="{ answered: item.answered }"
-                    >
-                        {{ item.question }} — <strong>Правильна відповідь: {{ item.answer }}</strong>
-                    </li>
-                </ul>
-            </section>
-
-            <!-- Секція результатів проходжень (IndexedDB + localStorage міграція, Варіант 8) -->
-            <section id="history">
-                <h2>Найкращі результати проходжень</h2>
-
-                <p id="storage-error" role="alert" v-if="storageError">{{ storageError }}</p>
-
-                <div class="results-actions">
-                    <button type="button" id="save-current-result-btn" @click="finishAndSaveResult">
-                        Зберегти поточний результат ({{ score }}/{{ questions.length }})
-                    </button>
-                </div>
-
-                <p v-if="!sortedResults.length" class="empty-results">
-                    Збережених результатів поки немає. Завершіть квіз або натисніть «Зберегти поточний результат».
-                </p>
-
-                <div class="history-cards" v-else>
-                    <article v-for="res in sortedResults" :key="res.id">
-                        <h3>{{ res.date }} — Результат: {{ res.score }}/{{ res.total }}</h3>
-                        <p>Точність: {{ res.total ? Math.round((res.score / res.total) * 100) : 0 }}%</p>
-                        <button type="button" class="delete-result-btn" @click="removeResult(res.id)">
-                            Видалити
-                        </button>
-                    </article>
-                </div>
-            </section>
-        </main>
-    </div>
+    <!-- Єдиний контейнер сторінок SPA -->
+    <main id="app"></main>
 
     <!-- Підвал -->
     <footer>
