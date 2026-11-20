@@ -1,4 +1,5 @@
-const API_BASE_URL = 'https://opentdb.com/api.php?amount=10&type=multiple';
+// Крок 9: Перемкнуто на локальний ендпоінт замість зовнішнього API
+const API_BASE_URL = '/api/questions';
 const LOCAL_STORAGE_KEY = 'quizResults_variant8';
 const MIGRATED_FLAG_KEY = 'quizResults_migrated_to_idb_v1';
 const DB_NAME = 'QuizDB';
@@ -323,7 +324,7 @@ async function loadQuestionsFromApi() {
   }
 
   const url = state.selectedCategory
-    ? `${API_BASE_URL}&category=${encodeURIComponent(state.selectedCategory)}`
+    ? `${API_BASE_URL}?category=${encodeURIComponent(state.selectedCategory)}`
     : API_BASE_URL;
 
   try {
