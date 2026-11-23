@@ -16,7 +16,11 @@ const CATEGORIES = [
 ];
 
 const appContainer = document.querySelector('#app');
-
+// Крок 15: екранування спецсимволів HTML перед вставкою в innerHTML (захист від XSS)
+function escapeHtml(value) {
+  const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+  return String(value ?? '').replace(/[&<>"']/g, (ch) => map[ch]);
+}
 const state = {
   selectedCategory: '',
   questions: [
@@ -513,7 +517,7 @@ function renderQuiz() {
       </div>
 
       <h2>Поточне питання</h2>
-      <p id="question-text">${currentItem ? currentItem.question : 'Немає доступних питань'}</p>
+      <p id="question-text">${currentItem ? escapeHtml(currentItem.question) : 'Немає доступних питань'}</p>
 
       <form id="quiz-form" class="options">
         ${
@@ -523,7 +527,7 @@ function renderQuiz() {
                   (opt, idx) => `
                 <label class="option-btn" for="ans-${idx}">
                   <input type="radio" name="quizOption" id="ans-${idx}" value="${idx}" required>
-                  <span class="option-label">${opt}</span>
+                  <span class="option-label">${escapeHtml(opt)}</span>
                 </label>
               `
                 )

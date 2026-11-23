@@ -5,6 +5,12 @@ const PORT = 3000;
 
 // Локальні дані для Варіанта 8: набір питань (заміна Open Trivia Database)
 const localQuestions = [
+    // Крок 15: тестове питання для перевірки XSS (видалити після скріншотів)
+  {
+    question: '&lt;img src=x onerror=&quot;alert(\'XSS\')&quot;&gt; Тестове питання',
+    correct_answer: 'Так',
+    incorrect_answers: ['Ні', 'Не знаю']
+  },
   {
     category: "Science: Computers",
     type: "multiple",
